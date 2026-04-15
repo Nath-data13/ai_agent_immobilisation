@@ -21,10 +21,10 @@ Avec le volume de la base client, ce traitement manuel n'est plus tenable.
 ## lancement du projet
 ```bash
 # cloner le projet
-git clone https://github.com/Nath-data13/agent_immo.git
+git clone https://github.com/Nath-data13/ai_agent_immobilisation.git
 
 # se placer dans le dossier du projet
-cd agent_immo
+cd ai_agent_immobilisation
 
 # créer un environnement virtuel
 python -m venv venv_immo
@@ -273,11 +273,13 @@ tests/
 
 logger.py                   # Logging Neon DB (traçabilité production)
 monitoring.py               # Surveillance automatique des performances post-run  
-requirements.txt            # dépendance du projet              
+requirements.txt            # dépendance du projet   
+app_dougs.py                # application Démo streamlit sur output run_v1.0               
 .env                        # variables d'environnement 
 .gitignore                      
 
 ```
+---
 
 ## Lancement de l'agent et des éval
 
@@ -296,4 +298,12 @@ python eval/run_eval.py
 
 # Tests unitaires (sans API, sans coût)
 pytest tests/ -v
+```
+
+---
+
+## Lancement de l'application streamlit
+```bash
+# Lancer l'app_dougs.py
+streamlit run app_dous.py
 ```
