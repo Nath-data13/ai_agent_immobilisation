@@ -1,4 +1,4 @@
-# AI Agent — Révision des immobilisations 
+# AI Agent Charges vs Immobilisations 
 
 Cas d'étude AI Agent Engineer — automatisation de la révision de clôture comptable.
 
@@ -42,28 +42,28 @@ pip install -r requirements.txt
 
 ---
 
-## Partie 1 — Approche agentique
+## Partie 1 - Approche agentique
 
 ### Principe directeur
 Séparer strictement ce qui relève du **jugement** (LLM) de ce qui relève de l'**exécution déterministe** (code Python pur). Le LLM ne touche jamais aux données — il décide, le code exécute.
 
 ### Étapes de conception et déploiement
 
-**Phase 1 — Cadrage**
+**Phase 1 - Cadrage**
 - Identifier les règles métier (seuils d'immobilisation par type d'entreprise, catégorie_comptable)
 - Définir les 5 décisions possibles : `charge_confirmed`, `reclassification`, `split_operation`, `request_client_info`, `human_review`
 - Définir les cas où l'humain garde la main (ambiguïté, information manquante, doute sur catégorie)
 
-**Phase 2 — Construction**
+**Phase 2 - Construction**
 - Modéliser le flux : collecte contexte → analyse LLM → exécution
 - Écrire les prompts versionnés avec règles comptables injectées depuis RAG
 - Construire la ground truth (9 opérations annotées avec justification)
 
-**Phase 3 — Évaluation avant déploiement**
+**Phase 3 - Évaluation avant déploiement**
 - Mesurer recall_strict, recall_système, escalade_inutile, 
 - Seuil minimum : recall_strict >= 90%, escalade_inutile <= 10%
 
-**Phase 4 — Production**
+**Phase 4 - Production**
 - Seuils de confiance configurables (thresholds.yaml) sans toucher au code
 - Logging dans Neon DB pour traçabilité de chaque décision
 - Checkpoint pour reprise automatique sur crash
@@ -76,7 +76,7 @@ Les cas ambigus sont **systématiquement escaladés** en `human_review`.
 
 ---
 
-## Partie 2 — Architecture agentique
+## Partie 2 - Architecture agentique
 
 ### Flux agent principal
 
@@ -146,7 +146,7 @@ Ce prototype **simule l'intégration finale** dans l'écosystème de production,
 
 ---
 
-## Partie 3 — Résultats et Suivis
+## Partie 3 - Résultats et Suivis
 
 ### Flux d'évaluation
 
@@ -175,7 +175,7 @@ python eval/run_eval.py
                 (Date, Modèle utilisé, Score de stabilité, Liste des erreurs).`
 ```
 
-### 1 — Agent trop prudent
+### 1 - Agent trop prudent
 **Symptôme** : trop de `human_review` sur des cas évidents → escalade_inutile élevé.
 
 **Court terme** : ajuster les seuils dans `configs/thresholds.yaml` sans toucher au code.
@@ -183,14 +183,14 @@ Baisser `seuil_critic_min` de 0.70 à 0.65, retravailler le prompt pour qu'il so
 
 **Moyen terme** : pipeline d'évaluation `eval/` avec ground truth — mesurer recall_strict et escalade_inutile sur chaque version de prompt. Ne déployer que si les métriques s'améliorent.
 
-### 2 — Tool `get_operation_file` tombe en erreur
+### 2 - Tool `get_operation_file` tombe en erreur
 **Symptôme** : l'agent reçoit une erreur lors de la récupération des pièces jointes.
 
 **Court terme** : Filet de sécurité dans orchestrator.py si l’appel échoue, le système ne crash pas, l’opération est isolée et routée vers `Human_review` - Plan de secours avec `checkpoint.py` qui sauvegarde l'état d'avancement
 
 **Moyen terme** : Réduire le volume human_review` avec un retry (ex : 3 tentatives) - Maintenir les pytests/test_tools.py` pour validation fonctionnement - Analyse de l’historique et de la traçabilité des runs dans Neon pour essayer d’identifier des patterns d’erreurs pour traiter l’origine de la panne (rate_limit, erreur serveur 500)
 
-### 3 — Agent interrompt son analyse
+### 3 - Agent interrompt son analyse
 **Symptôme** : le LLM s'arrête entre deux étapes sans soumettre de décision.
 
 **Court terme** : utiliser le `checkpoint.py` pour limiter les ressources et gagner du temps - forcer l’agent à aller au bout de l’analyse dans le prompt - Ajustement des pauses entre les runs pour respecter les quotas (Rate Limits) des fournisseurs. 
@@ -199,7 +199,7 @@ Baisser `seuil_critic_min` de 0.70 à 0.65, retravailler le prompt pour qu'il so
 
 ---
 
-## Partie 4 — Migration LLM
+## Partie 4 - Migration LLM
 L'architecture de l'agent a été conçue pour garantir une transition fluide entre les versions anthropic.
 
 ### Migration de Version (Code Actuel)
@@ -223,10 +223,9 @@ Pour assurer l'indépendance technologique du système, l'architecture prévoit 
 **Gestion Multimodèle** : Versionnage des prompts par fournisseur pour optimiser les performances selon les sensibilités de chaque LLM.
 
 **Pipeline de Validation** :
-
-        Validation technique (tests unitaires via pytest).
-        Comparaison des métriques (via le module Evaluation).
-        Validation métier (retour terrain et analyse de variance).
+        - Validation technique (tests unitaires via pytest).
+        - Comparaison des métriques (via le module Evaluation).
+        - Validation métier (retour terrain et analyse de variance).
 
 ---
 
