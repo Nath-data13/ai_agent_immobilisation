@@ -200,28 +200,33 @@ Baisser `seuil_critic_min` de 0.70 à 0.65, retravailler le prompt pour qu'il so
 ---
 
 ## Partie 4 — Migration LLM
+L'architecture de l'agent a été conçue pour garantir une transition fluide entre les versions anthropic.
 
-### Méthodologie
+### Migration de Version (Code Actuel)
+Cette approche est utilisée pour passer d'une version de modèle à une autre (ex: Claude 4.6 vers Claude 5 futir) au sein d'un même écosystème.
 
-**Étape 1 — Avant la migration**
-- Lancer 5 runs avec le modèle actuel → sauvegarder les outputs dans `eval/outputs/`
-- Calculer les métriques de référence (recall_strict, variance, escalade_inutile)
+**Configuration isolée** : Le switch de modèle s'effectue via un fichier de configuration YAML sans aucune modification de la logique métier du code.
 
-**Étape 2 — Migration**
-- Changer le modèle dans une seule constante (`LLM_MODEL` dans `orchestrator.py`)
-- Les prompts sont versionnés (`prompts/agent_analyse/current.txt`) — aucune modification
+**Évaluation automatisée** : Calcul systématique des scores de Recall et Accuracy via le script run_eval.py.
 
-**Étape 3 — Vérification**
-- Lancer 5 runs avec le nouveau modèle sur les mêmes données
-- Comparer avec `eval/compare_runs.py` : delta recall_strict, régressions, instabilités
+**Audit Neon DB** : Comparaison systématique des prédictions "Ancien vs Nouveau" pour isoler précisément les régressions par transaction.
 
-**Étape 4 — Décision**
-- Si recall_strict >= référence ET variance stable → migration validée
-- Si régression → rollback immédiat (changer la constante, redéployer)
+**Prompt Versioning** : Adaptation agile des consignes dans le dossier /prompts permettant de maintenir des versions spécifiques par modèle.
 
-### Garantie
-Les prompts étant versionnés et les données de test fixes (ground truth),
-la comparaison est **reproductible et objective** — pas d'effet de bord possible.
+### Migration de Fournisseur (Évolution du prototype)
+Pour assurer l'indépendance technologique du système, l'architecture prévoit un découplage total via une couche d'abstraction.
+
+**Découplage (LLMProvider)** : Utilisation d'une classe LLMProvider pour switcher de fournisseur (Anthropic, OpenAI, Mistral) en changeant uniquement les paramètres nom_llm et tool_llm.
+
+**Standardisation des Tools** : Les schémas des outils (outils comptables) utilisent un format neutre, traduit dynamiquement par le provider pour s'adapter aux spécificités de chaque API fournisseur.
+
+**Gestion Multimodèle** : Versionnage des prompts par fournisseur pour optimiser les performances selon les sensibilités de chaque LLM.
+
+**Pipeline de Validation** :
+
+        Validation technique (tests unitaires via pytest).
+        Comparaison des métriques (via le module Evaluation).
+        Validation métier (retour terrain et analyse de variance).
 
 ---
 
