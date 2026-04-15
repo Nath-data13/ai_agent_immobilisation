@@ -1,0 +1,11 @@
+anthropic
+python-dotenv
+psycopg2-binary
+pyyaml
+pandas
+matplotlib
+seaborn
+pytest
+pydantic==2.6.4
+streamlit
+plotly

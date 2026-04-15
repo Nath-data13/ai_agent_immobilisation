@@ -1,0 +1,20 @@
+# Seuils de confiance — modifiables sans toucher au code
+# L'agent d'analyse utilise ces seuils pour décider d'exécuter ou de passer en human_review
+# Le critic est appelé uniquement dans la zone grise (entre seuil_critic_min et seuil_auto)
+
+seuils:
+  charge_confirmed: 0.85      # >= 0.85 → exécution automatique
+  reclassification: 0.80      # >= 0.80 → exécution automatique
+  split_operation: 0.80       # >= 0.80 → exécution automatique
+  seuil_critic_min: 0.70      # entre 0.70 et seuil_auto → critic obligatoire
+  human_review_max: 0.70      # < 0.70 → human_review direct, pas de critic
+
+# Modèle LLM et version de prompt — changer ici pour une migration ou un test A/B
+modele:
+  llm_model: "claude-sonnet-4-6"
+  prompt_version: "v1.0"
+
+# Seuils de surveillance — alerte Slack si l'agent dégrade en dessous de ces valeurs
+alertes:
+  recall_strict_min: 0.90        # en dessous de 90% → alerte critique
+  escalade_inutile_max: 0.10     # au dessus de 10% → alerte (agent trop prudent)
